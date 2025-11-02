@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropManage - Property Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .sidebar { background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%); box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1); min-height: 100vh; }
+        .stat-card { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s; border: 1px solid rgba(255, 255, 255, 0.8); }
+        .stat-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+        .stat-icon { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .gradient-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-green { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+        .gradient-purple { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .gradient-orange { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+        .nav-item { transition: all 0.3s; cursor: pointer; border-radius: 12px; margin: 8px 12px; padding: 14px 20px; color: rgba(255, 255, 255, 0.8); font-weight: 500; }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.15); color: white; }
+        .nav-item.active { background: rgba(255, 255, 255, 0.2); color: white; border-left: 4px solid #fff; }
+        .chart-card { background: white; border-radius: 20px; padding: 28px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); }
+        .table-container { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); }
+        .table-hover tbody tr:hover { background: rgba(102, 126, 234, 0.05); }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 28px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6); }
+        .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .mobile-menu-btn { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 56px; height: 56px; border-radius: 50%; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5); cursor: pointer; }
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -280px; top: 0; bottom: 0; width: 280px; z-index: 999; transition: left 0.3s; }
+            .sidebar.active { left: 0; }
+            .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+            .stat-icon { width: 48px; height: 48px; font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+    <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+
+    <div class="flex min-h-screen">
+        <div class="sidebar w-72" id="sidebar">
+            <div class="p-6 border-b border-white border-opacity-20">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-building mr-3"></i>PropManage
+                </h2>
+                <p class="text-xs text-white text-opacity-70 mt-2">Property Management</p>
+            </div>
+            <nav class="py-4">
+                <button onclick="showPage('dashboard')" class="nav-item active w-full text-left" id="nav-dashboard">
+                    <i class="fas fa-chart-line mr-3"></i>Dashboard
+                </button>
+                <button onclick="showPage('properties')" class="nav-item w-full text-left" id="nav-properties">
+                    <i class="fas fa-building mr-3"></i>Properties
+                </button>
+                <button onclick="showPage('tenants')" class="nav-item w-full text-left" id="nav-tenants">
+                    <i class="fas fa-users mr-3"></i>Tenants
+                </button>
+                <button onclick="showPage('maintenance')" class="nav-item w-full text-left" id="nav-maintenance">
+                    <i class="fas fa-tools mr-3"></i>Maintenance
+                </button>
+                <button onclick="showPage('reports')" class="nav-item w-full text-left" id="nav-reports">
+                    <i class="fas fa-chart-bar mr-3"></i>Reports
+                </button>
+            </nav>
+        </div>
+
+        <div class="flex-1 p-4 sm:p-8">
+            <div id="dashboard" class="page active">
+                <h1 class="text-3xl sm:text-4xl font-bold text-white mb-6">Dashboard Overview</h1>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Total Properties</p>
+                                <h3 class="text-4xl font-bold text-gray-800">5</h3>
+                            </div>
+                            <div class="stat-icon gradient-blue text-white">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        </div>
+                        <p class="text-green-600 text-sm font-semibold"><i class="fas fa-arrow-up mr-1"></i>12% vs last month</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Occupancy Rate</p>
+                                <h3 class="text-4xl font-bold text-emerald-600">91.8%</h3>
+                            </div>
+                            <div class="stat-icon gradient-green text-white">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm">101 of 110 units</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Monthly Revenue</p>
+                                <h3 class="text-4xl font-bold text-gray-800">$142K</h3>
+                            </div>
+                            <div class="stat-icon gradient-purple text-white">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                        <p class="text-green-600 text-sm font-semibold"><i class="fas fa-arrow-up mr-1"></i>5.2% vs last month</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Pending Issues</p>
+                                <h3 class="text-4xl font-bold text-orange-600">2</h3>
+                            </div>
+                            <div class="stat-icon gradient-orange text-white">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm">Needs attention</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="chart-card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Revenue Trends</h3>
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Property Occupancy</h3>
+                        <canvas id="occupancyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="chart-card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Payment Status</h3>
+                        <canvas id="paymentChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Recent Maintenance</h3>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="font-semibold">AC not working</p>
+                                <p class="text-sm text-gray-500">Riverside Complex - B-205</p>
+                                <span class="badge bg-red-100 text-red-700 mt-2">High Priority</span>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="font-semibold">Leaking faucet</p>
+                                <p class="text-sm text-gray-500">Sunset Apartments - A-101</p>
+                                <span class="badge bg-yellow-100 text-yellow-700 mt-2">Medium Priority</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="properties" class="page">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white">Properties</h1>
+                    <button class="btn-primary"><i class="fas fa-plus mr-2"></i>Add Property</button>
+                </div>
+                <div class="table-container">
+                    <table class="w-full table-hover">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Property</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Address</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Units</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Occupancy</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Rent/Unit</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="propertiesTable" class="bg-white divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tenants" class="page">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white">Tenants</h1>
+                    <button class="btn-primary"><i class="fas fa-user-plus mr-2"></i>Add Tenant</button>
+                </div>
+                <div class="table-container">
+                    <table class="w-full table-hover">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Tenant</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Property</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Unit</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Rent</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Status</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Phone</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tenantsTable" class="bg-white divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="maintenance" class="page">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white">Maintenance</h1>
+                    <button class="btn-primary"><i class="fas fa-wrench mr-2"></i>New Request</button>
+                </div>
+                <div class="table-container">
+                    <table class="w-full table-hover">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Property</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Unit</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Issue</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Priority</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Status</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="maintenanceTable" class="bg-white divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="reports" class="page">
+                <h1 class="text-3xl sm:text-4xl font-bold text-white mb-6">Financial Reports</h1>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="stat-card">
+                        <p class="text-gray-500 text-sm font-semibold uppercase mb-2">Total Revenue</p>
+                        <h3 class="text-3xl font-bold text-green-600">$142,000</h3>
+                        <p class="text-xs text-gray-500 mt-2">Current Month</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-gray-500 text-sm font-semibold uppercase mb-2">Total Expenses</p>
+                        <h3 class="text-3xl font-bold text-red-600">$50,000</h3>
+                        <p class="text-xs text-gray-500 mt-2">Current Month</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-gray-500 text-sm font-semibold uppercase mb-2">Net Income</p>
+                        <h3 class="text-3xl font-bold text-blue-600">$92,000</h3>
+                        <p class="text-xs text-gray-500 mt-2">Profit: 64.8%</p>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Property Performance</h2>
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Property</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Revenue</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Occupancy</th>
+                            </tr>
+                        </thead>
+                        <tbody id="performanceTable" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const properties = [
+            {name: "Sunset Apartments", address: "123 Main St", units: 24, occupied: 22, rent: 1200, status: "Active"},
+            {name: "Riverside Complex", address: "456 Oak Ave", units: 36, occupied: 34, rent: 1500, status: "Active"},
+            {name: "Downtown Plaza", address: "789 Center Blvd", units: 18, occupied: 15, rent: 1800, status: "Active"},
+            {name: "Garden View", address: "321 Park Ln", units: 12, occupied: 12, rent: 1000, status: "Active"},
+            {name: "Hillside Terrace", address: "654 Hill Rd", units: 20, occupied: 18, rent: 1350, status: "Active"}
+        ];
+
+        const tenants = [
+            {name: "John Smith", property: "Sunset Apartments", unit: "A-101", rent: 1200, status: "Paid", phone: "555-0101"},
+            {name: "Sarah Johnson", property: "Riverside Complex", unit: "B-205", rent: 1500, status: "Paid", phone: "555-0102"},
+            {name: "Michael Brown", property: "Downtown Plaza", unit: "C-302", rent: 1800, status: "Pending", phone: "555-0103"},
+            {name: "Emily Davis", property: "Garden View", unit: "D-104", rent: 1000, status: "Paid", phone: "555-0104"},
+            {name: "David Wilson", property: "Sunset Apartments", unit: "A-203", rent: 1200, status: "Overdue", phone: "555-0105"}
+        ];
+
+        const maintenance = [
+            {property: "Sunset Apartments", unit: "A-101", issue: "Leaking faucet", priority: "Medium", status: "In Progress", date: "2024-10-28"},
+            {property: "Riverside Complex", unit: "B-205", issue: "AC not working", priority: "High", status: "Pending", date: "2024-10-30"},
+            {property: "Downtown Plaza", unit: "C-302", issue: "Door lock broken", priority: "High", status: "Pending", date: "2024-11-01"},
+            {property: "Garden View", unit: "D-104", issue: "Paint touch-up", priority: "Low", status: "Completed", date: "2024-10-25"}
+        ];
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(page).classList.add('active');
+            document.getElementById('nav-' + page).classList.add('active');
+            if(window.innerWidth <= 768) toggleSidebar();
+        }
+
+        function renderProperties() {
+            document.getElementById('propertiesTable').innerHTML = properties.map(p => 
+                `<tr><td class="px-6 py-4"><i class="fas fa-building text-purple-500 mr-2"></i>${p.name}</td>
+                <td class="px-6 py-4 text-gray-600">${p.address}</td>
+                <td class="px-6 py-4 font-medium">${p.units}</td>
+                <td class="px-6 py-4">${p.occupied}/${p.units} (${((p.occupied/p.units)*100).toFixed(0)}%)</td>
+                <td class="px-6 py-4 font-medium">$${p.rent}</td>
+                <td class="px-6 py-4"><span class="badge bg-green-100 text-green-800">${p.status}</span></td></tr>`
+            ).join('');
+        }
+
+        function renderTenants() {
+            document.getElementById('tenantsTable').innerHTML = tenants.map(t => 
+                `<tr><td class="px-6 py-4"><i class="fas fa-user-circle text-gray-400 mr-2"></i>${t.name}</td>
+                <td class="px-6 py-4 text-gray-600">${t.property}</td>
+                <td class="px-6 py-4 font-medium">${t.unit}</td>
+                <td class="px-6 py-4 font-medium">$${t.rent}</td>
+                <td class="px-6 py-4"><span class="badge ${t.status==='Paid'?'bg-green-100 text-green-800':t.status==='Pending'?'bg-yellow-100 text-yellow-800':'bg-red-100 text-red-800'}">${t.status}</span></td>
+                <td class="px-6 py-4 text-gray-600">${t.phone}</td></tr>`
+            ).join('');
+        }
+
+        function renderMaintenance() {
+            document.getElementById('maintenanceTable').innerHTML = maintenance.map(m => 
+                `<tr><td class="px-6 py-4">${m.property}</td>
+                <td class="px-6 py-4 font-medium">${m.unit}</td>
+                <td class="px-6 py-4">${m.issue}</td>
+                <td class="px-6 py-4"><span class="badge ${m.priority==='High'?'bg-red-100 text-red-800':m.priority==='Medium'?'bg-yellow-100 text-yellow-800':'bg-green-100 text-green-800'}">${m.priority}</span></td>
+                <td class="px-6 py-4"><span class="badge ${m.status==='Completed'?'bg-green-100 text-green-800':'bg-gray-100 text-gray-800'}">${m.status}</span></td>
+                <td class="px-6 py-4 text-gray-600">${m.date}</td></tr>`
+            ).join('');
+        }
+
+        function renderPerformance() {
+            document.getElementById('performanceTable').innerHTML = properties.map(p => {
+                const rev = p.occupied * p.rent;
+                return `<tr><td class="px-6 py-3 font-semibold">${p.name}</td>
+                <td class="px-6 py-3 font-semibold text-green-600">$${rev.toLocaleString()}</td>
+                <td class="px-6 py-3">${((p.occupied/p.units)*100).toFixed(1)}%</td></tr>`;
+            }).join('');
+        }
+
+        function initCharts() {
+            new Chart(document.getElementById('revenueChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Revenue',
+                        data: [125000, 128000, 132000, 135000, 138000, 142000],
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139,92,246,0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            new Chart(document.getElementById('occupancyChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Sunset', 'Riverside', 'Downtown', 'Garden', 'Hillside'],
+                    datasets: [{
+                        label: 'Occupancy %',
+                        data: [92, 94, 83, 100, 90],
+                        backgroundColor: ['#a78bfa', '#c084fc', '#e879f9', '#f0abfc', '#f9a8d4']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            new Chart(document.getElementById('paymentChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Paid', 'Pending', 'Overdue'],
+                    datasets: [{ data: [3, 1, 1], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProperties();
+            renderTenants();
+            renderMaintenance();
+            renderPerformance();
+            initCharts();
+        });
+    </script>
+</body>
+</html>
