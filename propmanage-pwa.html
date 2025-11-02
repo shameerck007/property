@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Property Management System - Manage your properties, tenants, and maintenance requests">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Property">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <title>PropManage - Property Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .sidebar { background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%); box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1); min-height: 100vh; }
+        .stat-card { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s; border: 1px solid rgba(255, 255, 255, 0.8); }
+        .stat-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+        .stat-icon { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .gradient-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-green { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+        .gradient-purple { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .gradient-orange { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+        .nav-item { transition: all 0.3s; cursor: pointer; border-radius: 12px; margin: 8px 12px; padding: 14px 20px; color: rgba(255, 255, 255, 0.8); font-weight: 500; }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.15); color: white; }
+        .nav-item.active { background: rgba(255, 255, 255, 0.2); color: white; border-left: 4px solid #fff; }
+        .chart-card { background: white; border-radius: 20px; padding: 28px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); }
+        .table-container { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); }
+        .table-hover tbody tr:hover { background: rgba(102, 126, 234, 0.05); }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .property-card { animation: scaleIn 0.3s ease-out; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 28px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6); }
+        .btn-secondary { background: #6b7280; color: white; padding: 12px 28px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn-secondary:hover { background: #4b5563; }
+        .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .mobile-menu-btn { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 56px; height: 56px; border-radius: 50%; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5); cursor: pointer; }
+        
+        /* PWA Install Prompt */
+        .install-prompt {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 20px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 2500;
+            display: none;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        .install-prompt.show {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        
+        .install-prompt-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .install-prompt-icon {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .install-prompt-text h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        
+        .install-prompt-text p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        .install-prompt-buttons {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .install-btn {
+            background: white;
+            color: #667eea;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .install-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+        }
+        
+        .dismiss-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .dismiss-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; animation: fadeIn 0.3s; }
+        .modal-content { background: white; border-radius: 20px; padding: 32px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-close { cursor: pointer; font-size: 24px; color: #9ca3af; transition: color 0.3s; }
+        .modal-close:hover { color: #374151; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px; }
+        .form-input, .form-select { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; transition: all 0.3s; font-family: 'Poppins', sans-serif; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
+        
+        .maintenance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .maintenance-card { background: white; border-radius: 16px; padding: 24px; border-left: 5px solid; position: relative; transition: all 0.3s; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+        .maintenance-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15); }
+        .maintenance-card.high { border-left-color: #ef4444; background: linear-gradient(135deg, #fff 0%, #fee2e2 100%); }
+        .maintenance-card.medium { border-left-color: #f59e0b; background: linear-gradient(135deg, #fff 0%, #fef3c7 100%); }
+        .maintenance-card.low { border-left-color: #10b981; background: linear-gradient(135deg, #fff 0%, #d1fae5 100%); }
+        .maintenance-card.completed { border-left-color: #6366f1; background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%); opacity: 0.8; }
+        .priority-icon { position: absolute; top: 16px; right: 16px; font-size: 24px; }
+        .maintenance-card.high .priority-icon { color: #ef4444; }
+        .maintenance-card.medium .priority-icon { color: #f59e0b; }
+        .maintenance-card.low .priority-icon { color: #10b981; }
+        .maintenance-card.completed .priority-icon { color: #6366f1; }
+        
+        .property-card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s; border: 1px solid rgba(255, 255, 255, 0.8); position: relative; overflow: hidden; }
+        .property-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+        .property-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .property-header { display: flex; align-items: start; justify-content: space-between; margin-bottom: 20px; }
+        .property-icon { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; }
+        .property-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+        .property-stat { background: #f9fafb; padding: 12px; border-radius: 12px; text-align: center; }
+        .property-stat-label { font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+        .property-stat-value { font-size: 18px; font-weight: 700; color: #1f2937; }
+        .occupancy-bar { width: 100%; height: 8px; background: #e5e7eb; border-radius: 10px; overflow: hidden; margin-top: 8px; }
+        .occupancy-fill { height: 100%; background: linear-gradient(90deg, #10b981 0%, #059669 100%); border-radius: 10px; transition: width 0.5s; }
+        
+        /* Compact Tenant Card Styles */
+        .tenant-card { 
+            background: white; 
+            border-radius: 16px; 
+            padding: 16px; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
+            transition: all 0.3s; 
+            border-left: 4px solid;
+            animation: scaleIn 0.3s ease-out; 
+        }
+        .tenant-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); }
+        .tenant-card.overdue { border-left-color: #ef4444; }
+        .tenant-card.pending { border-left-color: #f59e0b; }
+        .tenant-card.paid { border-left-color: #10b981; }
+        
+        .tenant-header-compact { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            margin-bottom: 12px; 
+            padding-bottom: 12px; 
+            border-bottom: 1px solid rgba(0,0,0,0.06); 
+        }
+        
+        .tenant-avatar-compact { 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-size: 18px; 
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .tenant-info-compact { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 8px; 
+            margin-bottom: 12px; 
+        }
+        
+        .tenant-detail-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+        }
+        
+        .tenant-detail-icon { 
+            width: 24px; 
+            color: #6b7280; 
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        
+        .tenant-detail-text { 
+            font-size: 12px; 
+            color: #374151; 
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .tenant-actions-compact { 
+            display: flex; 
+            gap: 6px; 
+        }
+        
+        .action-btn { 
+            flex: 1; 
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            font-size: 12px; 
+            font-weight: 600; 
+            border: none; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .action-btn-primary { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+        }
+        .action-btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); 
+        }
+        
+        .action-btn-secondary { 
+            background: #f3f4f6; 
+            color: #4b5563; 
+        }
+        .action-btn-secondary:hover { 
+            background: #e5e7eb; 
+        }
+        
+        .status-badge-compact { 
+            display: inline-flex; 
+            align-items: center; 
+            padding: 4px 10px; 
+            border-radius: 12px; 
+            font-size: 11px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.3px; 
+        }
+        
+        .status-badge-compact.overdue { 
+            background: #ef4444; 
+            color: white; 
+        }
+        .status-badge-compact.pending { 
+            background: #f59e0b; 
+            color: white; 
+        }
+        .status-badge-compact.paid { 
+            background: #10b981; 
+            color: white; 
+        }
+        
+        .multi-select { border: 2px solid #e5e7eb; border-radius: 10px; padding: 8px; max-height: 150px; overflow-y: auto; }
+        .multi-select-item { padding: 8px 12px; margin: 4px 0; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; }
+        .multi-select-item:hover { background: #f3f4f6; }
+        .multi-select-item.selected { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .multi-select-item input[type="checkbox"] { margin-right: 8px; }
+        
+        @media (max-width: 1024px) {
+            .tenant-info-compact {
+                grid-template-columns: 1fr;
+            }
+            .property-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -280px; top: 0; bottom: 0; width: 280px; z-index: 999; transition: left 0.3s; }
+            .sidebar.active { left: 0; }
+            .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+            .stat-icon { width: 48px; height: 48px; font-size: 22px; }
+            .maintenance-grid { grid-template-columns: 1fr; }
+            .modal-content { padding: 20px; }
+            .stat-card { padding: 16px; }
+            h1 { font-size: 24px !important; }
+            .chart-card { padding: 16px; }
+            
+            .tenant-card {
+                padding: 12px;
+            }
+            
+            .tenant-actions-compact {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 100%;
+            }
+            
+            .property-card {
+                padding: 16px;
+            }
+            
+            .tenant-header-compact {
+                flex-wrap: wrap;
+            }
+            
+            .install-prompt {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .install-prompt-buttons {
+                width: 100%;
+                justify-content: stretch;
+            }
+            
+            .install-btn, .dismiss-btn {
+                flex: 1;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .grid.grid-cols-1.sm\\:grid-cols-2 {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .grid.grid-cols-1.sm\\:grid-cols-3 {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .tenant-info-compact {
+                grid-template-columns: 1fr;
+            }
+            
+            .property-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- PWA Install Prompt -->
+    <div id="installPrompt" class="install-prompt">
+        <div class="install-prompt-content">
+            <div class="install-prompt-icon">
+                <i class="fas fa-building text-2xl" style="color: #667eea;"></i>
+            </div>
+            <div class="install-prompt-text">
+                <h3>Install Property App</h3>
+                <p>Add to your home screen for quick access</p>
+            </div>
+        </div>
+        <div class="install-prompt-buttons">
+            <button class="install-btn" onclick="installApp()">
+                <i class="fas fa-download mr-1"></i> Install
+            </button>
+            <button class="dismiss-btn" onclick="dismissInstallPrompt()">
+                Later
+            </button>
+        </div>
+    </div>
+
+    <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+
+    <div class="flex min-h-screen">
+        <div class="sidebar w-72" id="sidebar">
+            <div class="p-6 border-b border-white border-opacity-20">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-building mr-3"></i>PropManage
+                </h2>
+                <p class="text-xs text-white text-opacity-70 mt-2">Property Management</p>
+            </div>
+            <nav class="py-4">
+                <button onclick="showPage('dashboard')" class="nav-item active w-full text-left" id="nav-dashboard">
+                    <i class="fas fa-chart-line mr-3"></i>Dashboard
+                </button>
+                <button onclick="showPage('properties')" class="nav-item w-full text-left" id="nav-properties">
+                    <i class="fas fa-building mr-3"></i>Properties
+                </button>
+                <button onclick="showPage('tenants')" class="nav-item w-full text-left" id="nav-tenants">
+                    <i class="fas fa-users mr-3"></i>Tenants
+                </button>
+                <button onclick="showPage('maintenance')" class="nav-item w-full text-left" id="nav-maintenance">
+                    <i class="fas fa-tools mr-3"></i>Maintenance
+                </button>
+                <button onclick="showPage('reports')" class="nav-item w-full text-left" id="nav-reports">
+                    <i class="fas fa-chart-bar mr-3"></i>Reports
+                </button>
+            </nav>
+        </div>
+
+        <div class="flex-1 p-4 sm:p-8">
+            <div id="dashboard" class="page active">
+                <h1 class="text-3xl sm:text-4xl font-bold text-white mb-6">Dashboard Overview</h1>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Total Properties</p>
+                                <h3 class="text-4xl font-bold text-gray-800" id="totalProperties">5</h3>
+                            </div>
+                            <div class="stat-icon gradient-blue text-white">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        </div>
+                        <p class="text-green-600 text-sm font-semibold"><i class="fas fa-arrow-up mr-1"></i>12% vs last month</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Occupancy Rate</p>
+                                <h3 class="text-4xl font-bold text-emerald-600" id="occupancyRate">91.8%</h3>
+                            </div>
+                            <div class="stat-icon gradient-green text-white">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm" id="occupancyDetails">101 of 110 units</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Monthly Revenue</p>
+                                <h3 class="text-4xl font-bold text-gray-800" id="monthlyRevenue">$142K</h3>
+                            </div>
+                            <div class="stat-icon gradient-purple text-white">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                        <p class="text-green-600 text-sm font-semibold"><i class="fas fa-arrow-up mr-1"></i>5.2% vs last month</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Pending Issues</p>
+                                <h3 class="text-4xl font-bold text-orange-600" id="pendingIssues">2</h3>
+                            </div>
+                            <div class="stat-icon gradient-orange text-white">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm">Needs attention</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="chart-card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Revenue Trends</h3>
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Property Occupancy</h3>
+                        <canvas id="occupancyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="chart-card">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Recent Maintenance</h3>
+                            <button onclick="showPage('maintenance')" class="text-purple-600 text-sm font-semibold hover:text-purple-800">
+                                View All <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                        <div id="dashboardMaintenance" class="space-y-4"></div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Payment Status</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                            <div class="text-center">
+                                <canvas id="paymentChart" style="max-height: 200px;"></canvas>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-green-700 text-xs font-semibold uppercase mb-1">Paid</p>
+                                            <p class="text-3xl font-bold text-green-800" id="paidCount">3</p>
+                                        </div>
+                                        <i class="fas fa-check-circle text-3xl text-green-500"></i>
+                                    </div>
+                                </div>
+                                <div class="p-4 rounded-xl bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-yellow-700 text-xs font-semibold uppercase mb-1">Pending</p>
+                                            <p class="text-3xl font-bold text-yellow-800" id="pendingCount">1</p>
+                                        </div>
+                                        <i class="fas fa-clock text-3xl text-yellow-500"></i>
+                                    </div>
+                                </div>
+                                <div class="p-4 rounded-xl bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-red-700 text-xs font-semibold uppercase mb-1">Overdue</p>
+                                            <p class="text-3xl font-bold text-red-800" id="overdueCount">1</p>
+                                        </div>
+                                        <i class="fas fa-exclamation-circle text-3xl text-red-500"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-semibold text-gray-700">Collection Rate</span>
+                                <span class="text-lg font-bold text-green-600" id="collectionRate">60%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3 mt-2">
+                                <div id="collectionBar" class="bg-gradient-to-r from-green-500 to-emerald-600 h-3 rounded-full transition-all duration-500" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="properties" class="page">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white">Properties</h1>
+                    <button onclick="openModal('propertyModal')" class="btn-primary w-full sm:w-auto"><i class="fas fa-plus mr-2"></i>Add Property</button>
+                </div>
+                <div id="propertiesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+
+            <div id="tenants" class="page">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white">Tenants</h1>
+                    <button onclick="openModal('tenantModal')" class="btn-primary w-full sm:w-auto"><i class="fas fa-user-plus mr-2"></i>Add Tenant</button>
+                </div>
+                
+                <!-- Payment Status Summary -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-white rounded-xl p-4 shadow-md border-l-4 border-red-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-red-700 text-sm font-semibold uppercase">Overdue</p>
+                                <p class="text-3xl font-bold text-red-800" id="overdueTenantsCount">0</p>
+                            </div>
+                            <i class="fas fa-exclamation-circle text-4xl text-red-500"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-md border-l-4 border-yellow-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-yellow-700 text-sm font-semibold uppercase">Pending</p>
+                                <p class="text-3xl font-bold text-yellow-800" id="pendingTenantsCount">0</p>
+                            </div>
+                            <i class="fas fa-clock text-4xl text-yellow-500"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-md border-l-4 border-green-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-green-700 text-sm font-semibold uppercase">Paid</p>
+                                <p class="text-3xl font-bold text-green-800" id="paidTenantsCount">0</p>
+                            </div>
+                            <i class="fas fa-check-circle text-4xl text-green-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tenantsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+            </div>
+
+            <div id="maintenance" class="page">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white">Maintenance Requests</h1>
+                    <button onclick="openModal('maintenanceModal')" class="btn-primary w-full sm:w-auto"><i class="fas fa-wrench mr-2"></i>New Request</button>
+                </div>
+                <div id="maintenanceGrid" class="maintenance-grid"></div>
+            </div>
+
+            <div id="reports" class="page">
+                <h1 class="text-3xl sm:text-4xl font-bold text-white mb-6">Financial Reports</h1>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="stat-card">
+                        <p class="text-gray-500 text-sm font-semibold uppercase mb-2">Total Revenue</p>
+                        <h3 class="text-3xl font-bold text-green-600" id="reportRevenue">$142,000</h3>
+                        <p class="text-xs text-gray-500 mt-2">Current Month</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-gray-500 text-sm font-semibold uppercase mb-2">Total Expenses</p>
+                        <h3 class="text-3xl font-bold text-red-600">$50,000</h3>
+                        <p class="text-xs text-gray-500 mt-2">Current Month</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-gray-500 text-sm font-semibold uppercase mb-2">Net Income</p>
+                        <h3 class="text-3xl font-bold text-blue-600" id="reportNetIncome">$92,000</h3>
+                        <p class="text-xs text-gray-500 mt-2">Profit: 64.8%</p>
+                    </div>
+                </div>
+
+                <div class="chart-card overflow-x-auto">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Property Performance</h2>
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Property</th>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Revenue</th>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Occupancy</th>
+                            </tr>
+                        </thead>
+                        <tbody id="performanceTable" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Property Modal -->
+    <div id="propertyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-gray-800">Add New Property</h2>
+                <span class="modal-close" onclick="closeModal('propertyModal')"><i class="fas fa-times"></i></span>
+            </div>
+            <form id="propertyForm" onsubmit="addProperty(event)">
+                <div class="form-group">
+                    <label class="form-label">Property Name</label>
+                    <input type="text" name="name" class="form-input" placeholder="e.g., Sunset Apartments" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <input type="text" name="address" class="form-input" placeholder="e.g., 123 Main St" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Total Units</label>
+                    <input type="number" name="units" class="form-input" placeholder="e.g., 24" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Occupied Units</label>
+                    <input type="number" name="occupied" class="form-input" placeholder="e.g., 22" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rent per Unit ($)</label>
+                    <input type="number" name="rent" class="form-input" placeholder="e.g., 1200" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rent Terms</label>
+                    <select name="rentTerms" class="form-select" required>
+                        <option value="Daily">Daily</option>
+                        <option value="Monthly" selected>Monthly</option>
+                        <option value="Quarterly">Quarterly</option>
+                        <option value="Half Year">Half Year</option>
+                        <option value="One Year">One Year</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Unit From</label>
+                        <input type="text" name="unitFrom" class="form-input" placeholder="e.g., A-101" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Unit To</label>
+                        <input type="text" name="unitTo" class="form-input" placeholder="e.g., A-124" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="Active">Active</option>
+                        <option value="Under Renovation">Under Renovation</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Add Property</button>
+                    <button type="button" onclick="closeModal('propertyModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Tenant Modal -->
+    <div id="tenantModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-gray-800">Add New Tenant</h2>
+                <span class="modal-close" onclick="closeModal('tenantModal')"><i class="fas fa-times"></i></span>
+            </div>
+            <form id="tenantForm" onsubmit="addTenant(event)">
+                <div class="form-group">
+                    <label class="form-label">Tenant Name</label>
+                    <input type="text" name="name" class="form-input" placeholder="e.g., John Smith" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Property</label>
+                    <select name="property" class="form-select" id="tenantPropertySelect" required onchange="updateTenantUnits()">
+                        <option value="">Select Property</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Unit Number</label>
+                    <select name="unit" class="form-select" id="tenantUnitSelect" required>
+                        <option value="">Select Property First</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Monthly Rent ($)</label>
+                    <input type="number" name="rent" class="form-input" placeholder="e.g., 1200" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Overdue">Overdue</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" name="phone" class="form-input" placeholder="e.g., 555-0101" required>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Add Tenant</button>
+                    <button type="button" onclick="closeModal('tenantModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Tenant Modal -->
+    <div id="editTenantModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-gray-800">Edit Tenant</h2>
+                <span class="modal-close" onclick="closeModal('editTenantModal')"><i class="fas fa-times"></i></span>
+            </div>
+            <form id="editTenantForm" onsubmit="updateTenant(event)">
+                <input type="hidden" name="tenantIndex" id="editTenantIndex">
+                <div class="form-group">
+                    <label class="form-label">Tenant Name</label>
+                    <input type="text" name="name" id="editTenantName" class="form-input" placeholder="e.g., John Smith" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Property</label>
+                    <select name="property" class="form-select" id="editTenantPropertySelect" required onchange="updateEditTenantUnits()">
+                        <option value="">Select Property</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Unit Number</label>
+                    <select name="unit" class="form-select" id="editTenantUnitSelect" required>
+                        <option value="">Select Property First</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Monthly Rent ($)</label>
+                    <input type="number" name="rent" id="editTenantRent" class="form-input" placeholder="e.g., 1200" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Status</label>
+                    <select name="status" id="editTenantStatus" class="form-select" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Overdue">Overdue</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" name="phone" id="editTenantPhone" class="form-input" placeholder="e.g., 555-0101" required>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Update Tenant</button>
+                    <button type="button" onclick="closeModal('editTenantModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Maintenance Modal -->
+    <div id="maintenanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-gray-800">New Maintenance Request</h2>
+                <span class="modal-close" onclick="closeModal('maintenanceModal')"><i class="fas fa-times"></i></span>
+            </div>
+            <form id="maintenanceForm" onsubmit="addMaintenance(event)">
+                <div class="form-group">
+                    <label class="form-label">Property</label>
+                    <select name="property" class="form-select" id="maintenancePropertySelect" required onchange="updateMaintenanceUnits()">
+                        <option value="">Select Property</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Unit Number(s) - Select Multiple</label>
+                    <div id="maintenanceUnitsContainer" class="multi-select">
+                        <p class="text-sm text-gray-500 text-center py-4">Select a property first</p>
+                    </div>
+                    <input type="hidden" name="units" id="selectedMaintenanceUnits" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Issue Description</label>
+                    <input type="text" name="issue" class="form-input" placeholder="e.g., Leaking faucet" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select name="priority" class="form-select" required>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Create Request</button>
+                    <button type="button" onclick="closeModal('maintenanceModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Maintenance Modal -->
+    <div id="updateMaintenanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-gray-800">Update Maintenance Request</h2>
+                <span class="modal-close" onclick="closeModal('updateMaintenanceModal')"><i class="fas fa-times"></i></span>
+            </div>
+            <form id="updateMaintenanceForm" onsubmit="updateMaintenance(event)">
+                <input type="hidden" name="index" id="updateMaintenanceIndex">
+                <div class="form-group">
+                    <label class="form-label">Property</label>
+                    <input type="text" name="property" id="updateProperty" class="form-input" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Unit Number</label>
+                    <input type="text" name="unit" id="updateUnit" class="form-input" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Issue Description</label>
+                    <input type="text" name="issue" id="updateIssue" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select name="priority" id="updatePriority" class="form-select" required>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" id="updateStatus" class="form-select" required onchange="toggleCompletionDate()">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group" id="completionDateGroup" style="display: none;">
+                    <label class="form-label">Completion Date</label>
+                    <input type="date" name="completionDate" id="updateCompletionDate" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes (Optional)</label>
+                    <textarea name="notes" id="updateNotes" class="form-input" rows="3" placeholder="Add any additional notes..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Update Request</button>
+                    <button type="button" onclick="closeModal('updateMaintenanceModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
