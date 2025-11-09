@@ -3,208 +3,2114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Install Property App</title>
+    <title>PropManage - Property Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .sidebar { background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%); box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1); min-height: 100vh; }
+        .stat-card { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s; border: 1px solid rgba(255, 255, 255, 0.8); }
+        .stat-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+        .stat-icon { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .gradient-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-green { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+        .gradient-purple { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .gradient-orange { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+        .gradient-red { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .nav-item { transition: all 0.3s; cursor: pointer; border-radius: 12px; margin: 8px 12px; padding: 14px 20px; color: rgba(255, 255, 255, 0.8); font-weight: 500; }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.15); color: white; }
+        .nav-item.active { background: rgba(255, 255, 255, 0.2); color: white; border-left: 4px solid #fff; }
+        .chart-card { background: white; border-radius: 20px; padding: 28px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); }
+        .table-container { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); }
+        .table-hover tbody tr:hover { background: rgba(102, 126, 234, 0.05); }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .property-card { animation: scaleIn 0.3s ease-out; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 28px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6); }
+        .btn-secondary { background: #6b7280; color: white; padding: 12px 28px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-danger { background: #ef4444; color: white; padding: 12px 28px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn-danger:hover { background: #dc2626; }
+        .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .mobile-menu-btn { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 56px; height: 56px; border-radius: 50%; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5); cursor: pointer; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: 2000; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+        .modal.active { display: flex; animation: fadeIn 0.3s; }
+        .modal-content { background: white; border-radius: 20px; padding: 32px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; margin: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-close { cursor: pointer; font-size: 24px; color: #9ca3af; transition: color 0.3s; }
+        .modal-close:hover { color: #374151; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px; }
+        .form-input, .form-select { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; transition: all 0.3s; font-family: 'Poppins', sans-serif; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
+        
+        .maintenance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .maintenance-card { background: white; border-radius: 16px; padding: 24px; border-left: 5px solid; position: relative; transition: all 0.3s; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+        .maintenance-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15); }
+        .maintenance-card.high { border-left-color: #ef4444; background: linear-gradient(135deg, #fff 0%, #fee2e2 100%); }
+        .maintenance-card.medium { border-left-color: #f59e0b; background: linear-gradient(135deg, #fff 0%, #fef3c7 100%); }
+        .maintenance-card.low { border-left-color: #10b981; background: linear-gradient(135deg, #fff 0%, #d1fae5 100%); }
+        .maintenance-card.completed { border-left-color: #6366f1; background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%); opacity: 0.8; }
+        .priority-icon { position: absolute; top: 16px; right: 16px; font-size: 24px; }
+        .maintenance-card.high .priority-icon { color: #ef4444; }
+        .maintenance-card.medium .priority-icon { color: #f59e0b; }
+        .maintenance-card.low .priority-icon { color: #10b981; }
+        .maintenance-card.completed .priority-icon { color: #6366f1; }
+        
+        .property-card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s; border: 1px solid rgba(255, 255, 255, 0.8); position: relative; overflow: hidden; }
+        .property-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+        .property-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .property-header { display: flex; align-items: start; justify-content: space-between; margin-bottom: 20px; }
+        .property-icon { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; }
+        .property-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+        .property-stat { background: #f9fafb; padding: 12px; border-radius: 12px; text-align: center; }
+        .property-stat-label { font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+        .property-stat-value { font-size: 18px; font-weight: 700; color: #1f2937; }
+        .occupancy-bar { width: 100%; height: 8px; background: #e5e7eb; border-radius: 10px; overflow: hidden; margin-top: 8px; }
+        .occupancy-fill { height: 100%; background: linear-gradient(90deg, #10b981 0%, #059669 100%); border-radius: 10px; transition: width 0.5s; }
+        
+        /* Tenant Card Styles */
+        .tenant-card { 
+            background: white; 
+            border-radius: 16px; 
+            padding: 16px; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
+            transition: all 0.3s; 
+            border-left: 4px solid;
+            animation: scaleIn 0.3s ease-out; 
         }
-        .container {
-            max-width: 500px;
-            width: 100%;
-            background: white;
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
+        .tenant-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); }
+        .tenant-card.overdue { border-left-color: #ef4444; }
+        .tenant-card.pending { border-left-color: #f59e0b; }
+        .tenant-card.paid { border-left-color: #10b981; }
+        .tenant-card.expired { border-left-color: #8b5cf6; background: linear-gradient(135deg, #fff 0%, #f3e8ff 100%); }
+        
+        .tenant-header-compact { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            margin-bottom: 12px; 
+            padding-bottom: 12px; 
+            border-bottom: 1px solid rgba(0,0,0,0.06); 
         }
-        .icon {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 56px;
-            color: white;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        }
-        h1 {
-            font-size: 32px;
-            color: #1f2937;
-            margin-bottom: 12px;
-            font-weight: 800;
-        }
-        p {
-            color: #6b7280;
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 32px;
-        }
-        .btn {
-            display: inline-block;
-            width: 100%;
-            padding: 16px 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
+        
+        .tenant-avatar-compact { 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-size: 18px; 
             font-weight: 700;
-            font-size: 18px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            margin-bottom: 16px;
+            flex-shrink: 0;
         }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        
+        .tenant-info-compact { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 8px; 
+            margin-bottom: 12px; 
         }
-        .features {
-            text-align: left;
-            margin-top: 32px;
-            padding-top: 32px;
-            border-top: 2px solid #f3f4f6;
+        
+        .tenant-detail-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
         }
-        .feature {
-            display: flex;
-            align-items: start;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        .feature-icon {
-            width: 24px;
-            height: 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
+        
+        .tenant-detail-icon { 
+            width: 24px; 
+            color: #6b7280; 
             font-size: 12px;
             flex-shrink: 0;
-            margin-top: 2px;
         }
-        .feature-text {
-            flex: 1;
+        
+        .tenant-detail-text { 
+            font-size: 12px; 
+            color: #374151; 
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .feature-title {
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 4px;
-        }
-        .feature-desc {
-            font-size: 14px;
-            color: #6b7280;
-        }
-        .instructions {
-            background: #f9fafb;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 24px;
-            text-align: left;
-        }
-        .instructions h3 {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1f2937;
+        
+        .contract-dates { 
+            background: #f3f4f6; 
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            font-size: 11px; 
             margin-bottom: 12px;
         }
-        .instructions ol {
-            padding-left: 20px;
-            color: #4b5563;
-            font-size: 14px;
-            line-height: 1.8;
+        
+        .contract-dates-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            margin: 4px 0;
+            color: #374151;
         }
-        .instructions li {
+        
+        .contract-dates-item.expired {
+            color: #ef4444;
+            font-weight: 600;
+        }
+        
+        .units-badge-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
             margin-bottom: 8px;
         }
-        .platform {
+        
+        .unit-badge {
             display: inline-block;
-            padding: 4px 12px;
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            padding: 4px 8px;
             border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .payment-mode-badge {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        
+        .tenant-actions-compact { 
+            display: flex; 
+            gap: 6px; 
+        }
+        
+        .action-btn { 
+            flex: 1; 
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            font-size: 12px; 
+            font-weight: 600; 
+            border: none; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .action-btn-primary { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+        }
+        .action-btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); 
+        }
+        
+        .action-btn-secondary { 
+            background: #f3f4f6; 
+            color: #4b5563; 
+        }
+        .action-btn-secondary:hover { 
+            background: #e5e7eb; 
+        }
+        
+        .action-btn-danger { 
+            background: #fee2e2; 
+            color: #dc2626; 
+        }
+        .action-btn-danger:hover { 
+            background: #fecaca; 
+        }
+        
+        .status-badge-compact { 
+            display: inline-flex; 
+            align-items: center; 
+            padding: 4px 10px; 
+            border-radius: 12px; 
+            font-size: 11px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.3px; 
+        }
+        
+        .status-badge-compact.overdue { 
+            background: #ef4444; 
+            color: white; 
+        }
+        .status-badge-compact.pending { 
+            background: #f59e0b; 
+            color: white; 
+        }
+        .status-badge-compact.paid { 
+            background: #10b981; 
+            color: white; 
+        }
+        .status-badge-compact.expired { 
+            background: #8b5cf6; 
+            color: white; 
+        }
+
+        /* Unit Selection Modal Styles */
+        .unit-selection-modal .modal-content {
+            max-width: 650px;
+        }
+
+        .unit-selection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        .unit-selection-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .unit-selection-info {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .unit-selection-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .unit-search-box {
+            flex: 1;
+            position: relative;
+        }
+
+        .unit-search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 36px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .unit-search-box input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .unit-search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .unit-toolbar-btn {
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            color: #374151;
+            border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
-            margin-right: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
         }
-        @media (max-width: 600px) {
-            .container {
-                padding: 30px 24px;
+
+        .unit-toolbar-btn:hover {
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+            background: #f3e8ff;
+        }
+
+        .unit-toolbar-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .unit-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .unit-selection-item {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .unit-selection-card {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s;
+            background: white;
+            cursor: pointer;
+        }
+
+        .unit-selection-item input[type="checkbox"] {
+            display: none;
+        }
+
+        .unit-selection-item input[type="checkbox"]:checked + .unit-selection-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #8b5cf6;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .unit-selection-card:hover {
+            border-color: #8b5cf6;
+        }
+
+        .unit-selection-card.occupied {
+            background: #f3f4f6;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .unit-number {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .unit-status {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .unit-selection-card.occupied .unit-status {
+            color: #6b7280;
+        }
+
+        .unit-selection-card input[type="checkbox"]:checked + .unit-selection-card .unit-status {
+            color: white;
+        }
+
+        .unit-status-icon {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        .unit-selection-card.occupied .unit-status-icon {
+            background: #ef4444;
+        }
+
+        .unit-selection-card input[type="checkbox"]:checked + .unit-selection-card .unit-status-icon {
+            background: white;
+        }
+
+        .unit-selection-footer {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 2px solid #f3f4f6;
+        }
+
+        .unit-selection-footer-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .unit-count-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        @media (max-width: 1024px) {
+            .tenant-info-compact {
+                grid-template-columns: 1fr;
             }
-            h1 {
-                font-size: 28px;
+            .property-stats {
+                grid-template-columns: repeat(2, 1fr);
             }
-            .icon {
-                width: 100px;
-                height: 100px;
-                font-size: 48px;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -280px; top: 0; bottom: 0; width: 280px; z-index: 999; transition: left 0.3s; }
+            .sidebar.active { left: 0; }
+            .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+            .stat-icon { width: 48px; height: 48px; font-size: 22px; }
+            .maintenance-grid { grid-template-columns: 1fr; }
+            .modal-content { padding: 20px; }
+            .stat-card { padding: 16px; }
+            h1 { font-size: 24px !important; }
+            .chart-card { padding: 16px; }
+            
+            .tenant-card {
+                padding: 12px;
+            }
+            
+            .tenant-actions-compact {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 100%;
+            }
+            
+            .property-card {
+                padding: 16px;
+            }
+            
+            .tenant-header-compact {
+                flex-wrap: wrap;
+            }
+
+            .unit-selection-grid {
+                grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+            }
+
+            .unit-selection-toolbar {
+                flex-wrap: wrap;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .grid.grid-cols-1.sm\\:grid-cols-2 {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .grid.grid-cols-1.sm\\:grid-cols-3 {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .tenant-info-compact {
+                grid-template-columns: 1fr;
+            }
+            
+            .property-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .unit-selection-grid {
+                grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="icon">
-            <i class="fas fa-building"></i>
+    <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+
+    <div class="flex min-h-screen">
+        <div class="sidebar w-72" id="sidebar">
+            <div class="p-6 border-b border-white border-opacity-20">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-building mr-3"></i>PropManage
+                </h2>
+                <p class="text-xs text-white text-opacity-70 mt-2">Property Management</p>
+            </div>
+            <nav class="py-4">
+                <button onclick="showPage('dashboard')" class="nav-item active w-full text-left" id="nav-dashboard">
+                    <i class="fas fa-chart-line mr-3"></i>Dashboard
+                </button>
+                <button onclick="showPage('properties')" class="nav-item w-full text-left" id="nav-properties">
+                    <i class="fas fa-building mr-3"></i>Properties
+                </button>
+                <button onclick="showPage('tenants')" class="nav-item w-full text-left" id="nav-tenants">
+                    <i class="fas fa-users mr-3"></i>Tenants
+                </button>
+                <button onclick="showPage('maintenance')" class="nav-item w-full text-left" id="nav-maintenance">
+                    <i class="fas fa-tools mr-3"></i>Maintenance
+                </button>
+                <button onclick="showPage('reports')" class="nav-item w-full text-left" id="nav-reports">
+                    <i class="fas fa-chart-bar mr-3"></i>Reports
+                </button>
+            </nav>
         </div>
-        <h1>Property App</h1>
-        <p>Manage your properties, tenants, and maintenance requests with a powerful, easy-to-use app.</p>
-        
-        <a href="propmanage-pwa.html" class="btn">
-            <i class="fas fa-rocket"></i> Open App
-        </a>
-        
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">
-                    <i class="fas fa-building"></i>
+
+        <div class="flex-1 p-4 sm:p-8">
+            <div id="dashboard" class="page active">
+                <h1 class="text-3xl sm:text-4xl font-bold text-white mb-6">Dashboard Overview</h1>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-8">
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Total Properties</p>
+                                <h3 class="text-4xl font-bold text-gray-800" id="totalProperties">5</h3>
+                            </div>
+                            <div class="stat-icon gradient-blue text-white">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        </div>
+                        <p class="text-green-600 text-sm font-semibold"><i class="fas fa-arrow-up mr-1"></i>12% vs last month</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Occupancy Rate</p>
+                                <h3 class="text-4xl font-bold text-emerald-600" id="occupancyRate">91.8%</h3>
+                            </div>
+                            <div class="stat-icon gradient-green text-white">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm" id="occupancyDetails">101 of 110 units</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Monthly Revenue</p>
+                                <h3 class="text-4xl font-bold text-gray-800" id="monthlyRevenue">$142K</h3>
+                            </div>
+                            <div class="stat-icon gradient-purple text-white">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                        <p class="text-green-600 text-sm font-semibold"><i class="fas fa-arrow-up mr-1"></i>5.2% vs last month</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Pending Issues</p>
+                                <h3 class="text-4xl font-bold text-orange-600" id="pendingIssues">2</h3>
+                            </div>
+                            <div class="stat-icon gradient-orange text-white">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm">Needs attention</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-500 text-xs font-semibold uppercase mb-2">Expired Contracts</p>
+                                <h3 class="text-4xl font-bold text-purple-600" id="expiredContracts">0</h3>
+                            </div>
+                            <div class="stat-icon gradient-red text-white">
+                                <i class="fas fa-calendar-times"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm">Action Required</p>
+                    </div>
                 </div>
-                <div class="feature-text">
-                    <div class="feature-title">Property Management</div>
-                    <div class="feature-desc">Track all your properties in one place</div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="chart-card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Revenue Trends</h3>
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Property Occupancy</h3>
+                        <canvas id="occupancyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="chart-card">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Recent Maintenance</h3>
+                            <button onclick="showPage('maintenance')" class="text-purple-600 text-sm font-semibold hover:text-purple-800">
+                                View All <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                        <div id="dashboardMaintenance" class="space-y-4"></div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Payment Status</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                            <div class="text-center">
+                                <canvas id="paymentChart" style="max-height: 200px;"></canvas>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-green-700 text-xs font-semibold uppercase mb-1">Paid</p>
+                                            <p class="text-3xl font-bold text-green-800" id="paidCount">3</p>
+                                        </div>
+                                        <i class="fas fa-check-circle text-3xl text-green-500"></i>
+                                    </div>
+                                </div>
+                                <div class="p-4 rounded-xl bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-yellow-700 text-xs font-semibold uppercase mb-1">Pending</p>
+                                            <p class="text-3xl font-bold text-yellow-800" id="pendingCount">1</p>
+                                        </div>
+                                        <i class="fas fa-clock text-3xl text-yellow-500"></i>
+                                    </div>
+                                </div>
+                                <div class="p-4 rounded-xl bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-red-700 text-xs font-semibold uppercase mb-1">Overdue</p>
+                                            <p class="text-3xl font-bold text-red-800" id="overdueCount">1</p>
+                                        </div>
+                                        <i class="fas fa-exclamation-circle text-3xl text-red-500"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-semibold text-gray-700">Collection Rate</span>
+                                <span class="text-lg font-bold text-green-600" id="collectionRate">60%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3 mt-2">
+                                <div id="collectionBar" class="bg-gradient-to-r from-green-500 to-emerald-600 h-3 rounded-full transition-all duration-500" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="feature">
-                <div class="feature-icon">
-                    <i class="fas fa-users"></i>
+
+            <div id="properties" class="page">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white">Properties</h1>
+                    <button onclick="openModal('propertyModal')" class="btn-primary w-full sm:w-auto"><i class="fas fa-plus mr-2"></i>Add Property</button>
                 </div>
-                <div class="feature-text">
-                    <div class="feature-title">Tenant Tracking</div>
-                    <div class="feature-desc">Manage tenants and payment status</div>
-                </div>
+                <div id="propertiesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
-            
-            <div class="feature">
-                <div class="feature-icon">
-                    <i class="fas fa-tools"></i>
+
+            <div id="tenants" class="page">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white">Tenants</h1>
+                    <button onclick="openModal('tenantModal')" class="btn-primary w-full sm:w-auto"><i class="fas fa-user-plus mr-2"></i>Add Tenant</button>
                 </div>
-                <div class="feature-text">
-                    <div class="feature-title">Maintenance Requests</div>
-                    <div class="feature-desc">Track and manage maintenance issues</div>
+                
+                <!-- Payment Status Summary -->
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-xl p-4 shadow-md border-l-4 border-red-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-red-700 text-sm font-semibold uppercase">Overdue</p>
+                                <p class="text-3xl font-bold text-red-800" id="overdueTenantsCount">0</p>
+                            </div>
+                            <i class="fas fa-exclamation-circle text-4xl text-red-500"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-md border-l-4 border-yellow-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-yellow-700 text-sm font-semibold uppercase">Pending</p>
+                                <p class="text-3xl font-bold text-yellow-800" id="pendingTenantsCount">0</p>
+                            </div>
+                            <i class="fas fa-clock text-4xl text-yellow-500"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-md border-l-4 border-green-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-green-700 text-sm font-semibold uppercase">Paid</p>
+                                <p class="text-3xl font-bold text-green-800" id="paidTenantsCount">0</p>
+                            </div>
+                            <i class="fas fa-check-circle text-4xl text-green-500"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-md border-l-4 border-purple-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-purple-700 text-sm font-semibold uppercase">Expired</p>
+                                <p class="text-3xl font-bold text-purple-800" id="expiredTenantsCount">0</p>
+                            </div>
+                            <i class="fas fa-calendar-times text-4xl text-purple-500"></i>
+                        </div>
+                    </div>
                 </div>
+
+                <div id="tenantsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
             </div>
-            
-            <div class="feature">
-                <div class="feature-icon">
-                    <i class="fas fa-chart-line"></i>
+
+            <div id="maintenance" class="page">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white">Maintenance Requests</h1>
+                    <button onclick="openModal('maintenanceModal')" class="btn-primary w-full sm:w-auto"><i class="fas fa-wrench mr-2"></i>New Request</button>
                 </div>
-                <div class="feature-text">
-                    <div class="feature-title">Financial Reports</div>
-                    <div class="feature-desc">Monitor revenue and expenses</div>
+                <div id="maintenanceGrid" class="maintenance-grid"></div>
+            </div>
+
+            <div id="reports" class="page">
+                <h1 class="text-3xl sm:text-4xl font-bold text-white mb-6">Financial Reports</h1>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="stat-card">
+                        <p class="text-gray-500 text-sm font-semibold uppercase mb-2">Total Revenue</p>
+                        <h3 class="text-3xl font-bold text-green-600" id="reportRevenue">$142,000</h3>
+                        <p class="text-xs text-gray-500 mt-2">Current Month</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-gray-500 text-sm font-semibold uppercase mb-2">Total Expenses</p>
+                        <h3 class="text-3xl font-bold text-red-600">$50,000</h3>
+                        <p class="text-xs text-gray-500 mt-2">Current Month</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-gray-500 text-sm font-semibold uppercase mb-2">Net Income</p>
+                        <h3 class="text-3xl font-bold text-blue-600" id="reportNetIncome">$92,000</h3>
+                        <p class="text-xs text-gray-500 mt-2">Profit: 64.8%</p>
+                    </div>
+                </div>
+
+                <div class="chart-card overflow-x-auto">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Property Performance</h2>
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Property</th>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Revenue</th>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Occupancy</th>
+                            </tr>
+                        </thead>
+                        <tbody id="performanceTable" class="divide-y"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Add Property Modal -->
+    <div id="propertyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-gray-800">Add New Property</h2>
+                <span class="modal-close" onclick="closeModal('propertyModal')"><i class="fas fa-times"></i></span>
+            </div>
+            <form id="propertyForm" onsubmit="addProperty(event)">
+                <div class="form-group">
+                    <label class="form-label">Property Name</label>
+                    <input type="text" name="name" class="form-input" placeholder="e.g., Sunset Apartments" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <input type="text" name="address" class="form-input" placeholder="e.g., 123 Main St" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Total Units</label>
+                    <input type="number" name="units" class="form-input" placeholder="e.g., 24" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Occupied Units</label>
+                    <input type="number" name="occupied" class="form-input" placeholder="e.g., 22" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rent per Unit ($)</label>
+                    <input type="number" name="rent" class="form-input" placeholder="e.g., 1200" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rent Terms</label>
+                    <select name="rentTerms" class="form-select" required>
+                        <option value="Daily">Daily</option>
+                        <option value="Monthly" selected>Monthly</option>
+                        <option value="Quarterly">Quarterly</option>
+                        <option value="Half Year">Half Year</option>
+                        <option value="One Year">One Year</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Unit From</label>
+                        <input type="text" name="unitFrom" class="form-input" placeholder="e.g., A-101" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Unit To</label>
+                        <input type="text" name="unitTo" class="form-input" placeholder="e.g., A-124" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="Active">Active</option>
+                        <option value="Under Renovation">Under Renovation</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Add Property</button>
+                    <button type="button" onclick="closeModal('propertyModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Property Modal -->
+    <div id="editPropertyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-gray-800">Edit Property</h2>
+                <span class="modal-close" onclick="closeModal('editPropertyModal')"><i class="fas fa-times"></i></span>
+            </div>
+            <form id="editPropertyForm" onsubmit="updateProperty(event)">
+                <input type="hidden" name="propertyIndex" id="editPropertyIndex">
+                <div class="form-group">
+                    <label class="form-label">Property Name</label>
+                    <input type="text" name="name" id="editPropertyName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <input type="text" name="address" id="editPropertyAddress" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Total Units</label>
+                    <input type="number" name="units" id="editPropertyUnits" class="form-input" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Occupied Units</label>
+                    <input type="number" name="occupied" id="editPropertyOccupied" class="form-input" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rent per Unit ($)</label>
+                    <input type="number" name="rent" id="editPropertyRent" class="form-input" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rent Terms</label>
+                    <select name="rentTerms" id="editPropertyRentTerms" class="form-select" required>
+                        <option value="Daily">Daily</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Quarterly">Quarterly</option>
+                        <option value="Half Year">Half Year</option>
+                        <option value="One Year">One Year</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Unit From</label>
+                        <input type="text" name="unitFrom" id="editPropertyUnitFrom" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Unit To</label>
+                        <input type="text" name="unitTo" id="editPropertyUnitTo" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" id="editPropertyStatus" class="form-select" required>
+                        <option value="Active">Active</option>
+                        <option value="Under Renovation">Under Renovation</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Update Property</button>
+                    <button type="button" onclick="closeModal('editPropertyModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Tenant Modal -->
+    <div id="tenantModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-gray-800">Add New Tenant</h2>
+                <span class="modal-close" onclick="closeModal('tenantModal')"><i class="fas fa-times"></i></span>
+            </div>
+            <form id="tenantForm" onsubmit="addTenant(event)">
+                <div class="form-group">
+                    <label class="form-label">Tenant Name</label>
+                    <input type="text" name="name" class="form-input" placeholder="e.g., John Smith" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Property</label>
+                    <select name="property" class="form-select" id="tenantPropertySelect" required onchange="openUnitSelectionModal('add')">
+                        <option value="">Select Property</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Selected Units</label>
+                    <div id="selectedUnitsDisplay" class="p-3 bg-blue-50 border-2 border-blue-200 rounded-lg text-center text-gray-600">
+                        <i class="fas fa-door-open mr-2"></i>No units selected yet
+                    </div>
+                    <input type="hidden" name="units" id="selectedTenantUnits" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Monthly Rent per Unit ($)</label>
+                    <input type="number" name="rent" class="form-input" placeholder="e.g., 1200" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Occupied Date</label>
+                    <input type="date" name="occupiedDate" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contract End Date</label>
+                    <input type="date" name="endDate" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Mode</label>
+                    <select name="paymentMode" class="form-select" required>
+                        <option value="">Select Payment Mode</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Account Transfer">Account Transfer</option>
+                        <option value="POS">POS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Overdue">Overdue</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" name="phone" class="form-input" placeholder="e.g., 555-0101" required>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Add Tenant</button>
+                    <button type="button" onclick="closeModal('tenantModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Unit Selection Modal -->
+    <div id="unitSelectionModal" class="modal unit-selection-modal">
+        <div class="modal-content">
+            <div class="unit-selection-header">
+                <div>
+                    <div class="unit-selection-title" id="unitModalTitle">Select Units</div>
+                    <div class="unit-selection-info" id="unitModalInfo">Choose one or more units</div>
+                </div>
+                <span class="modal-close" onclick="closeUnitSelectionModal()"><i class="fas fa-times"></i></span>
+            </div>
+
+            <div class="unit-selection-toolbar">
+                <div class="unit-search-box">
+                    <i class="fas fa-search unit-search-icon"></i>
+                    <input type="text" id="unitSearchInput" placeholder="Search units..." onkeyup="filterUnits()">
+                </div>
+                <button type="button" class="unit-toolbar-btn" onclick="selectAllUnits()">
+                    <i class="fas fa-check-double mr-1"></i>All
+                </button>
+                <button type="button" class="unit-toolbar-btn" onclick="deselectAllUnits()">
+                    <i class="fas fa-times mr-1"></i>Clear
+                </button>
+            </div>
+
+            <div class="unit-selection-grid" id="unitSelectionGrid">
+                <!-- Units will be populated here -->
+            </div>
+
+            <div class="unit-selection-footer">
+                <div class="unit-selection-footer-info">
+                    <span id="selectedCountInfo">0 units selected</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-secondary" onclick="closeUnitSelectionModal()">Cancel</button>
+                    <button type="button" class="btn-primary" onclick="confirmUnitSelection()">
+                        <i class="fas fa-check mr-2"></i>Confirm Selection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Tenant Modal -->
+    <div id="editTenantModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-gray-800">Edit Tenant</h2>
+                <span class="modal-close" onclick="closeModal('editTenantModal')"><i class="fas fa-times"></i></span>
+            </div>
+            <form id="editTenantForm" onsubmit="updateTenant(event)">
+                <input type="hidden" name="tenantIndex" id="editTenantIndex">
+                <div class="form-group">
+                    <label class="form-label">Tenant Name</label>
+                    <input type="text" name="name" id="editTenantName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Property</label>
+                    <select name="property" class="form-select" id="editTenantPropertySelect" required onchange="openUnitSelectionModal('edit')">
+                        <option value="">Select Property</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Selected Units</label>
+                    <div id="editSelectedUnitsDisplay" class="p-3 bg-blue-50 border-2 border-blue-200 rounded-lg text-center text-gray-600">
+                        <i class="fas fa-door-open mr-2"></i>No units selected yet
+                    </div>
+                    <input type="hidden" name="units" id="editSelectedTenantUnits" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Monthly Rent per Unit ($)</label>
+                    <input type="number" name="rent" id="editTenantRent" class="form-input" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Occupied Date</label>
+                    <input type="date" name="occupiedDate" id="editTenantOccupiedDate" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contract End Date</label>
+                    <input type="date" name="endDate" id="editTenantEndDate" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Mode</label>
+                    <select name="paymentMode" id="editTenantPaymentMode" class="form-select" required>
+                        <option value="">Select Payment Mode</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Account Transfer">Account Transfer</option>
+                        <option value="POS">POS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Status</label>
+                    <select name="status" id="editTenantStatus" class="form-select" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Overdue">Overdue</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" name="phone" id="editTenantPhone" class="form-input" required>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Update Tenant</button>
+                    <button type="button" onclick="closeModal('editTenantModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Maintenance Modal -->
+    <div id="maintenanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-gray-800">New Maintenance Request</h2>
+                <span class="modal-close" onclick="closeModal('maintenanceModal')"><i class="fas fa-times"></i></span>
+            </div>
+            <form id="maintenanceForm" onsubmit="addMaintenance(event)">
+                <div class="form-group">
+                    <label class="form-label">Property</label>
+                    <select name="property" class="form-select" id="maintenancePropertySelect" required onchange="updateMaintenanceUnits()">
+                        <option value="">Select Property</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Unit Number(s) - Select Multiple</label>
+                    <div id="maintenanceUnitsContainer" class="multi-select">
+                        <p class="text-sm text-gray-500 text-center py-4">Select a property first</p>
+                    </div>
+                    <input type="hidden" name="units" id="selectedMaintenanceUnits" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Issue Description</label>
+                    <input type="text" name="issue" class="form-input" placeholder="e.g., Leaking faucet" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select name="priority" class="form-select" required>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Create Request</button>
+                    <button type="button" onclick="closeModal('maintenanceModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Maintenance Modal -->
+    <div id="updateMaintenanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-gray-800">Update Maintenance Request</h2>
+                <span class="modal-close" onclick="closeModal('updateMaintenanceModal')"><i class="fas fa-times"></i></span>
+            </div>
+            <form id="updateMaintenanceForm" onsubmit="updateMaintenance(event)">
+                <input type="hidden" name="index" id="updateMaintenanceIndex">
+                <div class="form-group">
+                    <label class="form-label">Property</label>
+                    <input type="text" name="property" id="updateProperty" class="form-input" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Unit Number</label>
+                    <input type="text" name="unit" id="updateUnit" class="form-input" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Issue Description</label>
+                    <input type="text" name="issue" id="updateIssue" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select name="priority" id="updatePriority" class="form-select" required>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" id="updateStatus" class="form-select" required onchange="toggleCompletionDate()">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group" id="completionDateGroup" style="display: none;">
+                    <label class="form-label">Completion Date</label>
+                    <input type="date" name="completionDate" id="updateCompletionDate" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes (Optional)</label>
+                    <textarea name="notes" id="updateNotes" class="form-input" rows="3" placeholder="Add any additional notes..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Update Request</button>
+                    <button type="button" onclick="closeModal('updateMaintenanceModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let properties = [
+            {name: "Sunset Apartments", address: "123 Main St", units: 24, occupied: 22, rent: 1200, status: "Active", rentTerms: "Monthly", unitFrom: "A-101", unitTo: "A-124"},
+            {name: "Riverside Complex", address: "456 Oak Ave", units: 36, occupied: 34, rent: 1500, status: "Active", rentTerms: "Monthly", unitFrom: "B-201", unitTo: "B-236"},
+            {name: "Downtown Plaza", address: "789 Center Blvd", units: 18, occupied: 15, rent: 1800, status: "Active", rentTerms: "Monthly", unitFrom: "C-301", unitTo: "C-318"},
+            {name: "Garden View", address: "321 Park Ln", units: 12, occupied: 12, rent: 1000, status: "Active", rentTerms: "Monthly", unitFrom: "D-101", unitTo: "D-112"},
+            {name: "Hillside Terrace", address: "654 Hill Rd", units: 20, occupied: 18, rent: 1350, status: "Active", rentTerms: "Monthly", unitFrom: "E-401", unitTo: "E-420"}
+        ];
+
+        let tenants = [
+            {name: "John Smith", property: "Sunset Apartments", units: ["A-101"], rent: 1200, status: "Paid", phone: "555-0101", occupiedDate: "2023-01-15", endDate: "2025-01-15", paymentMode: "Cash"},
+            {name: "Sarah Johnson", property: "Riverside Complex", units: ["B-205", "B-206"], rent: 1500, status: "Paid", phone: "555-0102", occupiedDate: "2023-06-20", endDate: "2025-06-20", paymentMode: "Account Transfer"},
+            {name: "Michael Brown", property: "Downtown Plaza", units: ["C-302"], rent: 1800, status: "Pending", phone: "555-0103", occupiedDate: "2023-03-10", endDate: "2024-12-10", paymentMode: "POS"},
+            {name: "Emily Davis", property: "Garden View", units: ["D-104"], rent: 1000, status: "Paid", phone: "555-0104", occupiedDate: "2022-11-05", endDate: "2024-10-05", paymentMode: "Cash"},
+            {name: "David Wilson", property: "Sunset Apartments", units: ["A-203"], rent: 1200, status: "Overdue", phone: "555-0105", occupiedDate: "2023-05-18", endDate: "2025-05-18", paymentMode: "Account Transfer"}
+        ];
+
+        let maintenance = [
+            {property: "Sunset Apartments", unit: "A-101", issue: "Leaking faucet", priority: "Medium", status: "In Progress", date: "2024-10-28", notes: ""},
+            {property: "Riverside Complex", unit: "B-205", issue: "AC not working", priority: "High", status: "Pending", date: "2024-10-30", notes: ""},
+            {property: "Downtown Plaza", unit: "C-302", issue: "Door lock broken", priority: "High", status: "Pending", date: "2024-11-01", notes: ""},
+            {property: "Garden View", unit: "D-104", issue: "Paint touch-up", priority: "Low", status: "Completed", date: "2024-10-25", completionDate: "2024-10-27", notes: "Completed successfully"}
+        ];
+
+        // Unit selection state
+        let currentUnitSelectionMode = 'add';
+        let currentSelectedProperty = '';
+        let unitSelectionState = {};
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(page).classList.add('active');
+            document.getElementById('nav-' + page).classList.add('active');
+            if(window.innerWidth <= 768) toggleSidebar();
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            if(modalId === 'maintenanceModal') {
+                updatePropertySelects();
+                updatePropertySelects('maintenance');
+            }
+            if(modalId === 'tenantModal' || modalId === 'editTenantModal') {
+                updatePropertySelects();
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            const formId = modalId.replace('Modal', 'Form');
+            if(document.getElementById(formId)) {
+                document.getElementById(formId).reset();
+            }
+            if(modalId === 'maintenanceModal') {
+                document.getElementById('selectedMaintenanceUnits').value = '';
+                document.getElementById('maintenanceUnitsContainer').innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Select a property first</p>';
+            }
+            if(modalId === 'tenantModal') {
+                document.getElementById('selectedTenantUnits').value = '';
+                document.getElementById('selectedUnitsDisplay').innerHTML = '<i class="fas fa-door-open mr-2"></i>No units selected yet';
+            }
+        }
+
+        function openUnitSelectionModal(mode) {
+            currentUnitSelectionMode = mode;
+            
+            if(mode === 'add') {
+                currentSelectedProperty = document.getElementById('tenantPropertySelect').value;
+            } else if(mode === 'edit') {
+                currentSelectedProperty = document.getElementById('editTenantPropertySelect').value;
+            }
+
+            if(!currentSelectedProperty) {
+                showNotification('Please select a property first');
+                return;
+            }
+
+            populateUnitSelectionGrid();
+            document.getElementById('unitSelectionModal').classList.add('active');
+        }
+
+        function closeUnitSelectionModal() {
+            document.getElementById('unitSelectionModal').classList.remove('active');
+            document.getElementById('unitSearchInput').value = '';
+        }
+
+        function populateUnitSelectionGrid() {
+            const property = properties.find(p => p.name === currentSelectedProperty);
+            if(!property) return;
+
+            const units = generateUnitNumbers(property.unitFrom, property.unitTo);
+            const occupiedUnits = getOccupiedUnits();
+            
+            const currentSelectedUnits = currentUnitSelectionMode === 'add' 
+                ? (document.getElementById('selectedTenantUnits').value?.split(',') || [])
+                : (document.getElementById('editSelectedTenantUnits').value?.split(',') || []);
+
+            // Remove current tenant's units from occupied for editing
+            if(currentUnitSelectionMode === 'edit') {
+                const tenantIndex = parseInt(document.getElementById('editTenantIndex').value);
+                if(tenants[tenantIndex] && tenants[tenantIndex].units) {
+                    tenants[tenantIndex].units.forEach(u => occupiedUnits.delete(u));
+                }
+            }
+
+            document.getElementById('unitModalTitle').textContent = `Select Units - ${property.name}`;
+            document.getElementById('unitModalInfo').textContent = `Total available: ${units.length} units`;
+
+            const grid = document.getElementById('unitSelectionGrid');
+            grid.innerHTML = units.map(unit => {
+                const isOccupied = occupiedUnits.has(unit);
+                const isSelected = currentSelectedUnits.includes(unit);
+                
+                return `
+                    <div class="unit-selection-item">
+                        <input 
+                            type="checkbox" 
+                            id="unit_${unit}" 
+                            value="${unit}"
+                            ${isSelected ? 'checked' : ''}
+                            ${isOccupied && !isSelected ? 'disabled' : ''}
+                            onchange="updateUnitCount()">
+                        <label for="unit_${unit}" class="unit-selection-card ${isOccupied && !isSelected ? 'occupied' : ''}">
+                            <div class="unit-number">${unit}</div>
+                            <div class="unit-status">
+                                <span class="unit-status-icon"></span>
+                                ${isOccupied && !isSelected ? 'Occupied' : 'Available'}
+                            </div>
+                        </label>
+                    </div>
+                `;
+            }).join('');
+
+            updateUnitCount();
+        }
+
+        function filterUnits() {
+            const searchTerm = document.getElementById('unitSearchInput').value.toLowerCase();
+            const items = document.querySelectorAll('.unit-selection-item');
+            
+            items.forEach(item => {
+                const unitNumber = item.querySelector('.unit-number').textContent.toLowerCase();
+                item.style.display = unitNumber.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        function selectAllUnits() {
+            const checkboxes = document.querySelectorAll('#unitSelectionGrid input[type="checkbox"]:not(:disabled)');
+            checkboxes.forEach(cb => cb.checked = true);
+            updateUnitCount();
+        }
+
+        function deselectAllUnits() {
+            const checkboxes = document.querySelectorAll('#unitSelectionGrid input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateUnitCount();
+        }
+
+        function updateUnitCount() {
+            const selectedCount = document.querySelectorAll('#unitSelectionGrid input[type="checkbox"]:checked').length;
+            document.getElementById('selectedCountInfo').textContent = `${selectedCount} unit${selectedCount !== 1 ? 's' : ''} selected`;
+        }
+
+        function confirmUnitSelection() {
+            const checkboxes = document.querySelectorAll('#unitSelectionGrid input[type="checkbox"]:checked');
+            const selectedUnits = Array.from(checkboxes).map(cb => cb.value);
+
+            if(selectedUnits.length === 0) {
+                showNotification('Please select at least one unit');
+                return;
+            }
+
+            if(currentUnitSelectionMode === 'add') {
+                document.getElementById('selectedTenantUnits').value = selectedUnits.join(',');
+                document.getElementById('selectedUnitsDisplay').innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                        ${selectedUnits.map(u => `<span class="unit-badge">${u}</span>`).join('')}
+                    </div>
+                `;
+            } else if(currentUnitSelectionMode === 'edit') {
+                document.getElementById('editSelectedTenantUnits').value = selectedUnits.join(',');
+                document.getElementById('editSelectedUnitsDisplay').innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                        ${selectedUnits.map(u => `<span class="unit-badge">${u}</span>`).join('')}
+                    </div>
+                `;
+            }
+
+            closeUnitSelectionModal();
+        }
+
+        function toggleCompletionDate() {
+            const status = document.getElementById('updateStatus').value;
+            const completionGroup = document.getElementById('completionDateGroup');
+            const completionInput = document.getElementById('updateCompletionDate');
+            
+            if(status === 'Completed') {
+                completionGroup.style.display = 'block';
+                completionInput.required = true;
+                if(!completionInput.value) {
+                    completionInput.value = new Date().toISOString().split('T')[0];
+                }
+            } else {
+                completionGroup.style.display = 'none';
+                completionInput.required = false;
+            }
+        }
+
+        function openUpdateMaintenance(index) {
+            const request = maintenance[index];
+            document.getElementById('updateMaintenanceIndex').value = index;
+            document.getElementById('updateProperty').value = request.property;
+            document.getElementById('updateUnit').value = request.unit;
+            document.getElementById('updateIssue').value = request.issue;
+            document.getElementById('updatePriority').value = request.priority;
+            document.getElementById('updateStatus').value = request.status;
+            document.getElementById('updateNotes').value = request.notes || '';
+            
+            if(request.completionDate) {
+                document.getElementById('updateCompletionDate').value = request.completionDate;
+            }
+            
+            toggleCompletionDate();
+            openModal('updateMaintenanceModal');
+        }
+
+        function updateMaintenance(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const index = parseInt(formData.get('index'));
+            
+            maintenance[index] = {
+                ...maintenance[index],
+                issue: formData.get('issue'),
+                priority: formData.get('priority'),
+                status: formData.get('status'),
+                notes: formData.get('notes') || '',
+                completionDate: formData.get('status') === 'Completed' ? formData.get('completionDate') : undefined
+            };
+            
+            closeModal('updateMaintenanceModal');
+            renderAll();
+            showNotification('Maintenance request updated successfully!');
+        }
+
+        function updatePropertySelects(context = 'tenant') {
+            const selects = context === 'maintenance' 
+                ? ['maintenancePropertySelect']
+                : ['tenantPropertySelect', 'editTenantPropertySelect'];
+            
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if(select) {
+                    select.innerHTML = '<option value="">Select Property</option>' + 
+                        properties.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+                }
+            });
+        }
+
+        function addProperty(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const property = {
+                name: formData.get('name'),
+                address: formData.get('address'),
+                units: parseInt(formData.get('units')),
+                occupied: parseInt(formData.get('occupied')),
+                rent: parseInt(formData.get('rent')),
+                rentTerms: formData.get('rentTerms'),
+                unitFrom: formData.get('unitFrom'),
+                unitTo: formData.get('unitTo'),
+                status: formData.get('status')
+            };
+            properties.push(property);
+            closeModal('propertyModal');
+            renderAll();
+            showNotification('Property added successfully!');
+        }
+
+        function editProperty(index) {
+            const property = properties[index];
+            document.getElementById('editPropertyIndex').value = index;
+            document.getElementById('editPropertyName').value = property.name;
+            document.getElementById('editPropertyAddress').value = property.address;
+            document.getElementById('editPropertyUnits').value = property.units;
+            document.getElementById('editPropertyOccupied').value = property.occupied;
+            document.getElementById('editPropertyRent').value = property.rent;
+            document.getElementById('editPropertyRentTerms').value = property.rentTerms;
+            document.getElementById('editPropertyUnitFrom').value = property.unitFrom;
+            document.getElementById('editPropertyUnitTo').value = property.unitTo;
+            document.getElementById('editPropertyStatus').value = property.status;
+            openModal('editPropertyModal');
+        }
+
+        function updateProperty(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const index = parseInt(formData.get('propertyIndex'));
+            
+            properties[index] = {
+                name: formData.get('name'),
+                address: formData.get('address'),
+                units: parseInt(formData.get('units')),
+                occupied: parseInt(formData.get('occupied')),
+                rent: parseInt(formData.get('rent')),
+                rentTerms: formData.get('rentTerms'),
+                unitFrom: formData.get('unitFrom'),
+                unitTo: formData.get('unitTo'),
+                status: formData.get('status')
+            };
+            
+            closeModal('editPropertyModal');
+            renderAll();
+            showNotification('Property updated successfully!');
+        }
+
+        function deleteProperty(index) {
+            if(confirm('Are you sure you want to delete this property?')) {
+                properties.splice(index, 1);
+                renderAll();
+                showNotification('Property deleted successfully!');
+            }
+        }
+
+        function generateUnitNumbers(unitFrom, unitTo) {
+            const units = [];
+            
+            const fromMatch = unitFrom.match(/^([A-Z]-?)(\d+)$/);
+            const toMatch = unitTo.match(/^([A-Z]-?)(\d+)$/);
+            
+            if (!fromMatch || !toMatch) {
+                return [unitFrom];
+            }
+            
+            const prefix = fromMatch[1];
+            const startNum = parseInt(fromMatch[2]);
+            const endNum = parseInt(toMatch[2]);
+            
+            for (let i = startNum; i <= endNum; i++) {
+                units.push(prefix + i);
+            }
+            
+            return units;
+        }
+
+        function getOccupiedUnits() {
+            const occupied = new Set();
+            tenants.forEach(t => {
+                if(t.units && Array.isArray(t.units)) {
+                    t.units.forEach(u => occupied.add(u));
+                }
+            });
+            return occupied;
+        }
+
+        function updateMaintenanceUnits() {
+            const propertyName = document.getElementById('maintenancePropertySelect').value;
+            const container = document.getElementById('maintenanceUnitsContainer');
+            const hiddenInput = document.getElementById('selectedMaintenanceUnits');
+            
+            if (!propertyName) {
+                container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Select a property first</p>';
+                hiddenInput.value = '';
+                return;
+            }
+            
+            const property = properties.find(p => p.name === propertyName);
+            if (!property) {
+                container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No units available</p>';
+                hiddenInput.value = '';
+                return;
+            }
+            
+            const units = generateUnitNumbers(property.unitFrom, property.unitTo);
+            const selectedUnits = hiddenInput.value ? hiddenInput.value.split(',') : [];
+            
+            container.innerHTML = units.map(unit => {
+                const isSelected = selectedUnits.includes(unit);
+                return `
+                    <div class="multi-select-item ${isSelected ? 'selected' : ''}" onclick="toggleMaintenanceUnit('${unit}')">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="event.stopPropagation(); toggleMaintenanceUnit('${unit}')">
+                        <span>${unit}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleMaintenanceUnit(unit) {
+            const hiddenInput = document.getElementById('selectedMaintenanceUnits');
+            let selectedUnits = hiddenInput.value ? hiddenInput.value.split(',') : [];
+            
+            if (selectedUnits.includes(unit)) {
+                selectedUnits = selectedUnits.filter(u => u !== unit);
+            } else {
+                selectedUnits.push(unit);
+            }
+            
+            hiddenInput.value = selectedUnits.join(',');
+            updateMaintenanceUnits();
+        }
+
+        function addTenant(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const selectedUnits = formData.get('units');
+            
+            if (!selectedUnits) {
+                showNotification('Please select at least one unit');
+                return;
+            }
+            
+            const tenant = {
+                name: formData.get('name'),
+                property: formData.get('property'),
+                units: selectedUnits.split(',').map(u => u.trim()),
+                rent: parseInt(formData.get('rent')),
+                status: formData.get('status'),
+                phone: formData.get('phone'),
+                occupiedDate: formData.get('occupiedDate'),
+                endDate: formData.get('endDate'),
+                paymentMode: formData.get('paymentMode')
+            };
+            tenants.push(tenant);
+            closeModal('tenantModal');
+            renderAll();
+            showNotification('Tenant added successfully!');
+        }
+
+        function editTenant(index) {
+            const tenant = tenants[index];
+            document.getElementById('editTenantIndex').value = index;
+            document.getElementById('editTenantName').value = tenant.name;
+            document.getElementById('editTenantPropertySelect').value = tenant.property;
+            document.getElementById('editSelectedTenantUnits').value = tenant.units.join(',');
+            document.getElementById('editSelectedUnitsDisplay').innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                    ${tenant.units.map(u => `<span class="unit-badge">${u}</span>`).join('')}
+                </div>
+            `;
+            document.getElementById('editTenantRent').value = tenant.rent;
+            document.getElementById('editTenantOccupiedDate').value = tenant.occupiedDate;
+            document.getElementById('editTenantEndDate').value = tenant.endDate;
+            document.getElementById('editTenantPaymentMode').value = tenant.paymentMode;
+            document.getElementById('editTenantStatus').value = tenant.status;
+            document.getElementById('editTenantPhone').value = tenant.phone;
+            openModal('editTenantModal');
+        }
+
+        function updateTenant(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const index = parseInt(formData.get('tenantIndex'));
+            const selectedUnits = formData.get('units');
+            
+            if (!selectedUnits) {
+                showNotification('Please select at least one unit');
+                return;
+            }
+            
+            tenants[index] = {
+                name: formData.get('name'),
+                property: formData.get('property'),
+                units: selectedUnits.split(',').map(u => u.trim()),
+                rent: parseInt(formData.get('rent')),
+                status: formData.get('status'),
+                phone: formData.get('phone'),
+                occupiedDate: formData.get('occupiedDate'),
+                endDate: formData.get('endDate'),
+                paymentMode: formData.get('paymentMode')
+            };
+            
+            closeModal('editTenantModal');
+            renderAll();
+            showNotification('Tenant updated successfully!');
+        }
+
+        function deleteTenant(index) {
+            if(confirm('Are you sure you want to delete this tenant?')) {
+                tenants.splice(index, 1);
+                renderAll();
+                showNotification('Tenant deleted successfully!');
+            }
+        }
+
+        function addMaintenance(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const selectedUnits = formData.get('units');
+            
+            if (!selectedUnits) {
+                showNotification('Please select at least one unit');
+                return;
+            }
+            
+            const units = selectedUnits.split(',');
+            const property = formData.get('property');
+            const issue = formData.get('issue');
+            const priority = formData.get('priority');
+            const status = formData.get('status');
+            const date = new Date().toISOString().split('T')[0];
+            
+            units.forEach(unit => {
+                const request = {
+                    property: property,
+                    unit: unit.trim(),
+                    issue: issue,
+                    priority: priority,
+                    status: status,
+                    date: date,
+                    notes: ''
+                };
+                maintenance.push(request);
+            });
+            
+            closeModal('maintenanceModal');
+            renderAll();
+            showNotification(`${units.length} maintenance request(s) created successfully!`);
+        }
+
+        function isContractExpired(endDate) {
+            const today = new Date();
+            const end = new Date(endDate);
+            return end < today;
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.innerHTML = `
+                <div style="position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+                     color: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); 
+                     z-index: 3000; animation: slideIn 0.3s ease-out;">
+                    <i class="fas fa-check-circle mr-2"></i>${message}
+                </div>
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function renderProperties() {
+            document.getElementById('propertiesGrid').innerHTML = properties.map((p, index) => {
+                const occupancyPercent = ((p.occupied / p.units) * 100).toFixed(0);
+                const monthlyRevenue = p.occupied * p.rent;
+                return `
+                <div class="property-card">
+                    <div class="property-header">
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-800 mb-1">${p.name}</h3>
+                            <p class="text-sm text-gray-500 flex items-center">
+                                <i class="fas fa-map-marker-alt mr-2"></i>${p.address}
+                            </p>
+                        </div>
+                        <div class="property-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-gray-700">Occupancy</span>
+                            <span class="text-sm font-bold text-gray-900">${p.occupied}/${p.units} Units (${occupancyPercent}%)</span>
+                        </div>
+                        <div class="occupancy-bar">
+                            <div class="occupancy-fill" style="width: ${occupancyPercent}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="property-stats">
+                        <div class="property-stat">
+                            <div class="property-stat-label">Total Units</div>
+                            <div class="property-stat-value">${p.units}</div>
+                        </div>
+                        <div class="property-stat">
+                            <div class="property-stat-label">Rent/Unit</div>
+                            <div class="property-stat-value">$${p.rent}</div>
+                        </div>
+                        <div class="property-stat">
+                            <div class="property-stat-label">Revenue/Month</div>
+                            <div class="property-stat-value text-green-600">$${monthlyRevenue.toLocaleString()}</div>
+                        </div>
+                        <div class="property-stat">
+                            <div class="property-stat-label">Rent Terms</div>
+                            <div class="property-stat-value text-sm">${p.rentTerms}</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-semibold text-gray-500">Unit Range:</span>
+                                <span class="badge bg-purple-100 text-purple-800">${p.unitFrom} - ${p.unitTo}</span>
+                            </div>
+                            <span class="badge ${p.status==='Active'?'bg-green-100 text-green-800':'bg-yellow-100 text-yellow-800'}">${p.status}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editProperty(${index})" class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-lg text-sm font-semibold hover:from-blue-600 hover:to-purple-700 transition">
+                                <i class="fas fa-edit mr-1"></i> Edit
+                            </button>
+                            <button onclick="deleteProperty(${index})" class="bg-red-100 text-red-700 py-2 px-4 rounded-lg text-sm font-semibold hover:bg-red-200 transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function renderTenants() {
+            const statusOrder = { 'Overdue': 1, 'Pending': 2, 'Paid': 3 };
+            const sortedTenants = [...tenants].sort((a, b) => {
+                if(isContractExpired(a.endDate) && !isContractExpired(b.endDate)) return -1;
+                if(!isContractExpired(a.endDate) && isContractExpired(b.endDate)) return 1;
+                return statusOrder[a.status] - statusOrder[b.status];
+            });
+            
+            const overdueCount = tenants.filter(t => t.status === 'Overdue').length;
+            const pendingCount = tenants.filter(t => t.status === 'Pending').length;
+            const paidCount = tenants.filter(t => t.status === 'Paid').length;
+            const expiredCount = tenants.filter(t => isContractExpired(t.endDate)).length;
+            
+            document.getElementById('overdueTenantsCount').textContent = overdueCount;
+            document.getElementById('pendingTenantsCount').textContent = pendingCount;
+            document.getElementById('paidTenantsCount').textContent = paidCount;
+            document.getElementById('expiredTenantsCount').textContent = expiredCount;
+            
+            document.getElementById('tenantsGrid').innerHTML = sortedTenants.map((t) => {
+                const originalIndex = tenants.indexOf(t);
+                const isExpired = isContractExpired(t.endDate);
+                const statusClass = isExpired ? 'expired' : t.status.toLowerCase();
+                const initials = t.name.split(' ').map(n => n[0]).join('');
+                
+                const occupiedDateObj = new Date(t.occupiedDate);
+                const endDateObj = new Date(t.endDate);
+                const occupiedDateStr = occupiedDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const endDateStr = endDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                
+                return `
+                <div class="tenant-card ${statusClass}">
+                    <div class="tenant-header-compact">
+                        <div class="tenant-avatar-compact">${initials}</div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base font-bold text-gray-800 mb-1 truncate">${t.name}</h3>
+                            <span class="status-badge-compact ${statusClass}">${isExpired ? 'EXPIRED' : t.status}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="units-badge-list">
+                        ${t.units.map(unit => `<span class="unit-badge">${unit}</span>`).join('')}
+                    </div>
+                    
+                    <div class="contract-dates">
+                        <div class="contract-dates-item">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>From: ${occupiedDateStr}</span>
+                        </div>
+                        <div class="contract-dates-item ${isExpired ? 'expired' : ''}">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>To: ${endDateStr} ${isExpired ? '(Expired)' : ''}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tenant-info-compact">
+                        <div class="tenant-detail-item">
+                            <i class="fas fa-building tenant-detail-icon"></i>
+                            <span class="tenant-detail-text" title="${t.property}">${t.property}</span>
+                        </div>
+                        <div class="tenant-detail-item">
+                            <i class="fas fa-dollar-sign tenant-detail-icon"></i>
+                            <span class="tenant-detail-text text-green-600 font-semibold">$${t.rent.toLocaleString()}</span>
+                        </div>
+                        <div class="tenant-detail-item">
+                            <i class="fas fa-phone tenant-detail-icon"></i>
+                            <span class="tenant-detail-text">${t.phone}</span>
+                        </div>
+                        <div class="tenant-detail-item">
+                            <i class="fas fa-credit-card tenant-detail-icon"></i>
+                            <span class="tenant-detail-text">${t.paymentMode}</span>
+                        </div>
+                    </div>
+                    <div class="payment-mode-badge">
+                        <i class="fas fa-${t.paymentMode === 'Cash' ? 'money-bill' : t.paymentMode === 'Account Transfer' ? 'exchange-alt' : 'credit-card'} mr-1"></i>${t.paymentMode}
+                    </div>
+                    
+                    <div class="tenant-actions-compact">
+                        <button onclick="editTenant(${originalIndex})" class="action-btn action-btn-primary">
+                            <i class="fas fa-edit"></i>
+                            <span>Edit</span>
+                        </button>
+                        <button onclick="deleteTenant(${originalIndex})" class="action-btn action-btn-danger">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button onclick="contactTenant('${t.phone}')" class="action-btn action-btn-secondary">
+                            <i class="fas fa-phone"></i>
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function contactTenant(phone) {
+            window.location.href = `tel:${phone}`;
+        }
+
+        function renderMaintenance() {
+            const priorityIcons = {
+                'High': 'fa-exclamation-circle',
+                'Medium': 'fa-exclamation-triangle',
+                'Low': 'fa-info-circle'
+            };
+            
+            document.getElementById('maintenanceGrid').innerHTML = maintenance.map((m, index) => 
+                `<div class="maintenance-card ${m.priority.toLowerCase()} ${m.status==='Completed'?'completed':''}" onclick="openUpdateMaintenance(${index})">
+                    <i class="fas ${priorityIcons[m.priority]} priority-icon"></i>
+                    <div class="mb-3">
+                        <h4 class="font-bold text-gray-800 text-lg mb-1">${m.issue}</h4>
+                        <p class="text-gray-600 text-sm"><i class="fas fa-building mr-1"></i>${m.property}</p>
+                        <p class="text-gray-600 text-sm"><i class="fas fa-door-open mr-1"></i>Unit ${m.unit}</p>
+                        ${m.completionDate ? `<p class="text-green-600 text-sm mt-2"><i class="fas fa-check mr-1"></i>Completed: ${m.completionDate}</p>` : ''}
+                    </div>
+                    <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                        <span class="badge ${m.status==='Completed'?'bg-green-100 text-green-800':m.status==='In Progress'?'bg-blue-100 text-blue-800':'bg-gray-100 text-gray-800'}">${m.status}</span>
+                        <span class="text-xs text-gray-500"><i class="fas fa-calendar mr-1"></i>${m.date}</span>
+                    </div>
+                </div>`
+            ).join('');
+            
+            const recentMaintenance = maintenance.slice(0, 3);
+            document.getElementById('dashboardMaintenance').innerHTML = recentMaintenance.map((m) => {
+                const actualIndex = maintenance.indexOf(m);
+                const priorityColors = {
+                    'High': { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', icon: 'text-red-500', bar: 'bg-red-500' },
+                    'Medium': { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', icon: 'text-yellow-500', bar: 'bg-yellow-500' },
+                    'Low': { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', icon: 'text-green-500', bar: 'bg-green-500' }
+                };
+                const colors = priorityColors[m.priority];
+                const statusProgress = m.status === 'Completed' ? 100 : m.status === 'In Progress' ? 50 : 10;
+                
+                return `<div class="p-4 ${colors.bg} rounded-xl border-2 ${colors.border} cursor-pointer hover:shadow-lg transition-all" onclick="openUpdateMaintenance(${actualIndex})">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="fas ${priorityIcons[m.priority]} ${colors.icon} text-xl"></i>
+                                <h4 class="font-bold text-gray-800">${m.issue}</h4>
+                            </div>
+                            <p class="text-sm ${colors.text} font-semibold mb-1">
+                                <i class="fas fa-building mr-1"></i>${m.property} - Unit ${m.unit}
+                            </p>
+                            <div class="flex items-center gap-3 text-xs text-gray-600">
+                                <span><i class="fas fa-calendar mr-1"></i>${m.date}</span>
+                                <span class="badge ${m.priority==='High'?'bg-red-100 text-red-700':m.priority==='Medium'?'bg-yellow-100 text-yellow-700':'bg-green-100 text-green-700'}">${m.priority}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-semibold text-gray-700">Status: ${m.status}</span>
+                            <span class="font-bold ${colors.text}">${statusProgress}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="${colors.bar} h-2 rounded-full transition-all duration-500" style="width: ${statusProgress}%"></div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderPerformance() {
+            document.getElementById('performanceTable').innerHTML = properties.map(p => {
+                const rev = p.occupied * p.rent;
+                return `<tr><td class="px-4 sm:px-6 py-3 font-semibold">${p.name}</td>
+                <td class="px-4 sm:px-6 py-3 font-semibold text-green-600">$${rev.toLocaleString()}</td>
+                <td class="px-4 sm:px-6 py-3">${((p.occupied/p.units)*100).toFixed(1)}%</td></tr>`;
+            }).join('');
+        }
+
+        function updateDashboardStats() {
+            const totalUnits = properties.reduce((sum, p) => sum + p.units, 0);
+            const occupiedUnits = properties.reduce((sum, p) => sum + p.occupied, 0);
+            const occupancyRate = ((occupiedUnits / totalUnits) * 100).toFixed(1);
+            const revenue = tenants.filter(t => t.status === 'Paid').reduce((sum, t) => sum + (t.rent * t.units.length), 0);
+            const pendingCount = maintenance.filter(m => m.status === 'Pending').length;
+            const expiredCount = tenants.filter(t => isContractExpired(t.endDate)).length;
+            
+            document.getElementById('totalProperties').textContent = properties.length;
+            document.getElementById('occupancyRate').textContent = occupancyRate + '%';
+            document.getElementById('occupancyDetails').textContent = `${occupiedUnits} of ${totalUnits} units`;
+            document.getElementById('monthlyRevenue').textContent = '$' + (revenue/1000).toFixed(0) + 'K';
+            document.getElementById('pendingIssues').textContent = pendingCount;
+            document.getElementById('expiredContracts').textContent = expiredCount;
+            document.getElementById('reportRevenue').textContent = '$' + revenue.toLocaleString();
+            document.getElementById('reportNetIncome').textContent = '$' + (revenue - 50000).toLocaleString();
+            
+            const paidCount = tenants.filter(t => t.status === 'Paid').length;
+            const pendingPaymentCount = tenants.filter(t => t.status === 'Pending').length;
+            const overdueCount = tenants.filter(t => t.status === 'Overdue').length;
+            const collectionRate = tenants.length > 0 ? ((paidCount / tenants.length) * 100).toFixed(0) : 0;
+            
+            document.getElementById('paidCount').textContent = paidCount;
+            document.getElementById('pendingCount').textContent = pendingPaymentCount;
+            document.getElementById('overdueCount').textContent = overdueCount;
+            document.getElementById('collectionRate').textContent = collectionRate + '%';
+            document.getElementById('collectionBar').style.width = collectionRate + '%';
+        }
+
+        function initCharts() {
+            new Chart(document.getElementById('revenueChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Revenue',
+                        data: [125000, 128000, 132000, 135000, 138000, 142000],
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139,92,246,0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 3
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'bottom' } } 
+                }
+            });
+
+            new Chart(document.getElementById('occupancyChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Sunset', 'Riverside', 'Downtown', 'Garden', 'Hillside'],
+                    datasets: [{
+                        label: 'Occupancy %',
+                        data: [92, 94, 83, 100, 90],
+                        backgroundColor: ['#a78bfa', '#c084fc', '#e879f9', '#f0abfc', '#f9a8d4'],
+                        borderRadius: 8
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } }, 
+                    scales: { y: { beginAtZero: true, max: 100 } } 
+                }
+            });
+
+            const paidCount = tenants.filter(t => t.status === 'Paid').length;
+            const pendingCount = tenants.filter(t => t.status === 'Pending').length;
+            const overdueCount = tenants.filter(t => t.status === 'Overdue').length;
+
+            new Chart(document.getElementById('paymentChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Paid', 'Pending', 'Overdue'],
+                    datasets: [{ 
+                        data: [paidCount, pendingCount, overdueCount], 
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], 
+                        borderWidth: 0 
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                padding: 10,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        } 
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function renderAll() {
+            renderProperties();
+            renderTenants();
+            renderMaintenance();
+            renderPerformance();
+            updateDashboardStats();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+            initCharts();
+        });
+    </script>
 </body>
 </html>
